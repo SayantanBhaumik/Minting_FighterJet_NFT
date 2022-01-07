@@ -1,3 +1,5 @@
+//We are using CHAINLINK oracle for randomness of choice 
+
 pragma solidity 0.6.6;
 
 import "openzeppelin/contracts/token/ERC721/ERC721.sol";
@@ -5,19 +7,28 @@ import "openzeppelin/contracts/token/ERC721/ERC721.sol";
 import "@chainlink/contracts/src/v0.6/VRFConsumerBase.sol";
 
 //Multiple inheritance
-contract AdvancedNft is ERC721 , VRFConsumerBase{
+contract FighterJetNft is ERC721 , VRFConsumerBase{
 
     //variable for tracking number of tokens
     uint256 public tokenCounter;
 
-    //custom datastructure for storing choices
-    enum Jets("Sukhoi","MIG","Rafale")
-
-    //mapping for keeping track of which address is makin which request
+    //custom datastructure for storing choices of jets
+    enum Jets("Sukhoi","Mig","Rafale")
+    
+    //address->requestId->request->tokenID->tokenURI
+    
+    //mapping for keeping track of which address is making which request
     mapping (bytes32=>address)public requestIdtoSender;
+    
+    //mapping for keeping track of which request is interacting to whichtokenURI
     mapping (bytes32 => string) public requestIdtotokenURI;
+    
+    //mapping for keeping track of which tokenID is getting  which jet
     mapping(uint256=>Jets) public newtokenIDtoJets;
-     mapping(bytes32 => uint256) public requestIdToTokenId;
+    
+    //mapping for keeping track of which requestID is linked to  which tokenId
+    mapping(bytes32 => uint256) public requestIdToTokenId;
+    
     event requestedCollectible(bytes32 indexed requestId); 
 
     //for generating randomResult
@@ -29,6 +40,7 @@ contract AdvancedNft is ERC721 , VRFConsumerBase{
     //LinkToken because we will fee oracle gas
     //keyHash for randomness
     //we are inheriting constructor of VRFConsumerBase and ERC721
+    
     constructor (address _VRFCordinator,address _LinkToken,bytes32 _keyHash)
     public
     VRFConsumerBase(_VRFCordinator,_LinkToken)
@@ -56,12 +68,11 @@ contract AdvancedNft is ERC721 , VRFConsumerBase{
         _setTokenURI(newtokenID,tokeURI);
 
         //instance 
+        //returns 1 of the 3 options
         Jets jet = Jets(randomNumber%3);
         newtokenIDtoJets[newtokenID]=jet;
         requestIdToTokenId[requestId] = newItemId;
         tokenCounter = tokenCounter + 1;
         
     }
-
-
 }
